@@ -190,16 +190,17 @@ def main():
                     st.write("Sample chunk 2:")
                     st.write(splitted_docs[1])
 
-            # Create vector store
-            with st.spinner("Creating vector store..."):
-                result = create_vector_store(request_id, splitted_docs)
-                if result:
-                    st.success("PDF processed successfully!")
-                    # Load the vector store immediately after creation
-                    st.session_state.faiss_index = load_vector_store()
-                    st.session_state.vector_store_loaded = True
-                else:
-                    st.error("Error processing PDF. Please check the logs.")
+            # Create and load vector store if not already loaded
+            if not st.session_state.vector_store_loaded:
+                with st.spinner("Creating vector store..."):
+                    result = create_vector_store(request_id, splitted_docs)
+                    if result:
+                        st.success("PDF processed successfully!")
+                        # Load the vector store immediately after creation
+                        st.session_state.faiss_index = load_vector_store()
+                        st.session_state.vector_store_loaded = True
+                    else:
+                        st.error("Error processing PDF. Please check the logs.")
 
             # Cleanup
             os.remove(saved_file_name)
@@ -210,6 +211,7 @@ def main():
     # Query Section
     st.header("Query PDF")
 
+<<<<<<< HEAD
     # Load vector store if not already loaded
     # if not st.session_state.vector_store_loaded:
     #     with st.spinner("Loading vector store..."):
@@ -217,6 +219,9 @@ def main():
     #         if st.session_state.faiss_index is not None:
     #             st.session_state.vector_store_loaded = True
 
+=======
+    # Ensure the vector store is loaded only once
+>>>>>>> refs/remotes/origin/main
     if st.session_state.vector_store_loaded:
         question = st.text_input("Please ask your question")
         if st.button("Ask Question"):
