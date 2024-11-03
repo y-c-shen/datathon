@@ -6,10 +6,8 @@ from langchain_community.embeddings import BedrockEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.vectorstores import FAISS
-from langchain.llms.bedrock import Bedrock
 from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
-
 from langchain_community.chat_models import BedrockChat
 
 # S3 Client setup
@@ -69,14 +67,40 @@ def create_vector_store(request_id, documents):
             Bucket=BUCKET_NAME,
             Key="my_faiss.pkl"
         )
+        
+        # Store the file information in session state
+        if 'uploaded_files' not in st.session_state:
+            st.session_state.uploaded_files = []
+        st.session_state.uploaded_files.append({
+            'id': request_id,
+            'name': file_name,
+            'faiss_file': f"{file_name}.faiss",
+            'pkl_file': f"{file_name}.pkl"
+        })
+        
         return True
     except Exception as e:
         st.error(f"Error in create_vector_store: {str(e)}")
         return False
 
-def load_index():
-    s3_client.download_file(Bucket=BUCKET_NAME, Key="my_faiss.faiss", Filename=f"{folder_path}my_faiss.faiss")
-    s3_client.download_file(Bucket=BUCKET_NAME, Key="my_faiss.pkl", Filename=f"{folder_path}my_faiss.pkl")
+def load_vector_store():
+    """Load the vector store from S3 and return the FAISS index"""
+    try:
+        # Download files from S3
+        s3_client.download_file(Bucket=BUCKET_NAME, Key="my_faiss.faiss", Filename=f"{folder_path}my_faiss.faiss")
+        s3_client.download_file(Bucket=BUCKET_NAME, Key="my_faiss.pkl", Filename=f"{folder_path}my_faiss.pkl")
+        
+        # Load the FAISS index
+        faiss_index = FAISS.load_local(
+            index_name="my_faiss",
+            folder_path=folder_path,
+            embeddings=bedrock_embeddings,
+            allow_dangerous_deserialization=True
+        )
+        return faiss_index
+    except Exception as e:
+        st.error(f"Error loading vector store: {str(e)}")
+        return None
 
 def get_llm():
     llm = BedrockChat(
@@ -123,10 +147,18 @@ def get_response(llm, vectorstore, question):
     return answer['result']
 
 def main():
-    st.title("Chat with PDF Demo - Admin Site")
+    # Initialize session state
+    if 'uploaded_files' not in st.session_state:
+        st.session_state.uploaded_files = []
+    if 'vector_store_loaded' not in st.session_state:
+        st.session_state.vector_store_loaded = False
+    if 'faiss_index' not in st.session_state:
+        st.session_state.faiss_index = None
+        
+    st.title("Welcome to SummariX !")
     
     # File Upload Section
-    st.header("Upload PDF")
+    st.header("Upload PDF to start")
     uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
     
     if uploaded_file is not None:
@@ -163,6 +195,9 @@ def main():
                 result = create_vector_store(request_id, splitted_docs)
                 if result:
                     st.success("PDF processed successfully!")
+                    # Load the vector store immediately after creation
+                    st.session_state.faiss_index = load_vector_store()
+                    st.session_state.vector_store_loaded = True
                 else:
                     st.error("Error processing PDF. Please check the logs.")
 
@@ -174,30 +209,24 @@ def main():
 
     # Query Section
     st.header("Query PDF")
-    
-    # Load index
-    load_index()
 
-    dir_list = os.listdir(folder_path)
-    st.write(f"Files and Directories in {folder_path}")
-    st.write(dir_list)
+    # Load vector store if not already loaded
+    if not st.session_state.vector_store_loaded:
+        with st.spinner("Loading vector store..."):
+            st.session_state.faiss_index = load_vector_store()
+            if st.session_state.faiss_index is not None:
+                st.session_state.vector_store_loaded = True
 
-    # Create index
-    faiss_index = FAISS.load_local(
-        index_name="my_faiss",
-        folder_path=folder_path,
-        embeddings=bedrock_embeddings,
-        allow_dangerous_deserialization=True
-    )
-
-    st.write("INDEX IS READY")
-    question = st.text_input("Please ask your question")
-    if st.button("Ask Question"):
-        with st.spinner("Querying..."):
-            llm = get_llm()
-            response = get_response(llm, faiss_index, question)
-            st.write(response)
-            st.success("Done")
+    if st.session_state.vector_store_loaded:
+        question = st.text_input("Please ask your question")
+        if st.button("Ask Question"):
+            with st.spinner("Querying..."):
+                llm = get_llm()
+                response = get_response(llm, st.session_state.faiss_index, question)
+                st.write(response)
+                st.success("Done")
+    else:
+        st.info("Please upload a PDF file first to start querying.")
 
 if __name__ == "__main__":
     main()
