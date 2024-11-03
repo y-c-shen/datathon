@@ -211,11 +211,11 @@ def main():
     st.header("Query PDF")
 
     # Load vector store if not already loaded
-    if not st.session_state.vector_store_loaded:
-        with st.spinner("Loading vector store..."):
-            st.session_state.faiss_index = load_vector_store()
-            if st.session_state.faiss_index is not None:
-                st.session_state.vector_store_loaded = True
+    # if not st.session_state.vector_store_loaded:
+    #     with st.spinner("Loading vector store..."):
+    #         st.session_state.faiss_index = load_vector_store()
+    #         if st.session_state.faiss_index is not None:
+    #             st.session_state.vector_store_loaded = True
 
     if st.session_state.vector_store_loaded:
         question = st.text_input("Please ask your question")
