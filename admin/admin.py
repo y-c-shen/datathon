@@ -10,6 +10,8 @@ from langchain.llms.bedrock import Bedrock
 from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
 
+from langchain_community.chat_models import BedrockChat
+
 # S3 Client setup
 s3_client = boto3.client(
     's3',
@@ -29,7 +31,10 @@ bedrock_client = boto3.client(
 )
 
 # Initialize embeddings
-bedrock_embeddings = BedrockEmbeddings(model_id="amazon.titan-embed-text-v1", client=bedrock_client)
+bedrock_embeddings = BedrockEmbeddings(
+    model_id="amazon.titan-embed-text-v1",
+    client=bedrock_client
+)
 
 # Set bucket name correctly
 BUCKET_NAME = "rapport-annuel"
@@ -74,20 +79,32 @@ def load_index():
     s3_client.download_file(Bucket=BUCKET_NAME, Key="my_faiss.pkl", Filename=f"{folder_path}my_faiss.pkl")
 
 def get_llm():
-    llm = Bedrock(model_id="anthropic.claude-v2:1", client=bedrock_client,
-                  model_kwargs={'max_tokens_to_sample': 512})
+    llm = BedrockChat(
+        model_id="anthropic.claude-3-sonnet-20240229-v1:0",
+        client=bedrock_client,
+        model_kwargs={
+            "max_tokens": 512,
+            "temperature": 0.7,
+            "top_p": 1,
+            "top_k": 250,
+            "anthropic_version": "bedrock-2023-05-31"
+        }
+    )
     return llm
 
 def get_response(llm, vectorstore, question):
     prompt_template = """
-    Human: Please use the given context to provide concise answer to the question
-    If you don't know the answer, just say that you don't know, don't try to make up an answer.
-    
-    {context}
-    
+    Human: Use the following context to answer the question. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+
+    Context: {context}
+
     Question: {question}
 
-    Assistant:"""
+    Assistant: I'll do my best to answer based on the context provided.
+
+    Human: Great, please provide your answer now. Be concise and be confident in your answer. 
+
+    Assistant: """
 
     PROMPT = PromptTemplate(
         template=prompt_template, input_variables=["context", "question"]
