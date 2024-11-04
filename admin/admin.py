@@ -180,7 +180,7 @@ def main():
             # Split text
             with st.spinner("Processing document..."):
                 splitted_docs = split_text(pages, 1000, 200)
-                st.success(f"Created {len(splitted_docs)} document chunks")
+                #st.success(f"Created {len(splitted_docs)} document chunks")
 
             # Show sample chunks
             if st.checkbox("Show sample chunks"):
