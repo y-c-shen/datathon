@@ -211,7 +211,6 @@ def main():
     # Query Section
     st.header("Query PDF")
 
-<<<<<<< HEAD
     # Load vector store if not already loaded
     # if not st.session_state.vector_store_loaded:
     #     with st.spinner("Loading vector store..."):
@@ -219,10 +218,15 @@ def main():
     #         if st.session_state.faiss_index is not None:
     #             st.session_state.vector_store_loaded = True
 
-=======
-    # Ensure the vector store is loaded only once
->>>>>>> refs/remotes/origin/main
     if st.session_state.vector_store_loaded:
+        # Add Quick Summary button
+        if st.button("📄 Quick Summary"):
+            with st.spinner("Generating summary..."):
+                llm = get_llm()
+                summary = get_response(llm, st.session_state.faiss_index, "Summarize the main concepts of the file. Have a confident, but concise tone")
+                st.markdown("### Document Summary")
+                st.write(summary)
+                st.markdown("---")
         question = st.text_input("Please ask your question")
         if st.button("Ask Question"):
             with st.spinner("Querying..."):
