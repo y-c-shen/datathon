@@ -13,20 +13,20 @@ from langchain_community.chat_models import BedrockChat
 # S3 Client setup
 s3_client = boto3.client(
     's3',
-    aws_access_key_id='ASIAQNIHWFDGIVWHC73E',
-    aws_secret_access_key='Ouz+CbnNyS5/kI3q+OVYHjrZaK0Fq62O4a3v530c',
-    aws_session_token='IQoJb3JpZ2luX2VjEGIaCXVzLWVhc3QtMSJIMEYCIQDJF9FUymhPXDEjeG2przXMg2opXSpgrSYiXEkoXWVc5wIhANKvuDJjN/+gDStsV04Sss9ahRYNyxTaV7Jkx4kkyIboKqICCNv//////////wEQAhoMMDI4NDcwMjkwNjM2Igw9rOlWsHgM8AvaIcoq9gGPayXWrVaBZQCqEVX7I/lOTUD/g4S/Ox91e5SBSt77bxni6rb4sTo2dgZApAmJ/Fo/tJ9g4zp33+LLo5qgxWjoVBs6nCMhxYQuDG/0FX/u4AfaVw3j3GEFJqd2xr+XthosJ6af5tsY3iROyDEXVfQ2Wjj9eYrRBBR+EXGhpaoBOmW9OPpDlssWAKnvIpmOpX8ESX/R0Ct4DDnyJkikthtPwcdn9ALzHugoDSmbxmzROwe+XPVklSIZrefCNBRToYw1HTSHDVuHArmupjIJy+pq06cv9lp9xYLDJwvmLjBtJGTVSJRYHl9ED7O8qr5gyUcEhT5dlnEwkPGeuQY6nAENn+5Qu8pjsxFe2/jsvFIaE+hRVtqQi5xcOWRRGWDdhrBjCzq5z5bayJ6BvntHAfGwNhXsrzlo6MmA2L8aL3rJyjP48FA+bwwpWPk5r+Bn5Y+j+a2EIdnfcNdUBbfvbDSXcvvf5FNPuKgoX0jgIj3ipXdUWyJqnis+WsgyGgdiLCLP1T7XiCkKrCUvUUS6SKvJ28zpZZNTgE5vlgA=',
-    region_name='us-west-2'
+    aws_access_key_id='YOUR_ACCESS_KEY_ID',
+    aws_secret_access_key='YOUR_SECRET_ACCESS_KEY',
+    aws_session_token='YOUR_SESSION_TOKEN',
+    region_name='YOUR_REGION'
 )
 
 # Bedrock client setup
 bedrock_client = boto3.client(
     service_name="bedrock-runtime",
-    region_name="us-west-2",
-    aws_access_key_id='ASIAQNIHWFDGIVWHC73E',
-    aws_secret_access_key='Ouz+CbnNyS5/kI3q+OVYHjrZaK0Fq62O4a3v530c',
-    aws_session_token='IQoJb3JpZ2luX2VjEGIaCXVzLWVhc3QtMSJIMEYCIQDJF9FUymhPXDEjeG2przXMg2opXSpgrSYiXEkoXWVc5wIhANKvuDJjN/+gDStsV04Sss9ahRYNyxTaV7Jkx4kkyIboKqICCNv//////////wEQAhoMMDI4NDcwMjkwNjM2Igw9rOlWsHgM8AvaIcoq9gGPayXWrVaBZQCqEVX7I/lOTUD/g4S/Ox91e5SBSt77bxni6rb4sTo2dgZApAmJ/Fo/tJ9g4zp33+LLo5qgxWjoVBs6nCMhxYQuDG/0FX/u4AfaVw3j3GEFJqd2xr+XthosJ6af5tsY3iROyDEXVfQ2Wjj9eYrRBBR+EXGhpaoBOmW9OPpDlssWAKnvIpmOpX8ESX/R0Ct4DDnyJkikthtPwcdn9ALzHugoDSmbxmzROwe+XPVklSIZrefCNBRToYw1HTSHDVuHArmupjIJy+pq06cv9lp9xYLDJwvmLjBtJGTVSJRYHl9ED7O8qr5gyUcEhT5dlnEwkPGeuQY6nAENn+5Qu8pjsxFe2/jsvFIaE+hRVtqQi5xcOWRRGWDdhrBjCzq5z5bayJ6BvntHAfGwNhXsrzlo6MmA2L8aL3rJyjP48FA+bwwpWPk5r+Bn5Y+j+a2EIdnfcNdUBbfvbDSXcvvf5FNPuKgoX0jgIj3ipXdUWyJqnis+WsgyGgdiLCLP1T7XiCkKrCUvUUS6SKvJ28zpZZNTgE5vlgA='
-)
+    region_name='YOUR_REGION',
+    aws_access_key_id='YOUR_ACCESS_KEY_ID',
+    aws_secret_access_key='YOUR_SECRET_ACCESS_KEY',
+    aws_session_token='YOUR_SESSION_TOKEN'
+    )
 
 # Initialize embeddings
 bedrock_embeddings = BedrockEmbeddings(
@@ -209,14 +209,7 @@ def main():
             st.error(f"An error occurred: {str(e)}")
 
     # Query Section
-    st.header("Query PDF")
-
-    # Load vector store if not already loaded
-    # if not st.session_state.vector_store_loaded:
-    #     with st.spinner("Loading vector store..."):
-    #         st.session_state.faiss_index = load_vector_store()
-    #         if st.session_state.faiss_index is not None:
-    #             st.session_state.vector_store_loaded = True
+    #st.header("Query PDF")
 
     if st.session_state.vector_store_loaded:
         # Add Quick Summary button
@@ -233,7 +226,7 @@ def main():
                 llm = get_llm()
                 response = get_response(llm, st.session_state.faiss_index, question)
                 st.write(response)
-                st.success("Done")
+                #st.success("Done")
     else:
         st.info("Please upload a PDF file first to start querying.")
 
